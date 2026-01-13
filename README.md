@@ -1,4 +1,4 @@
-# Group 2 – Web & Application Development (2026)
+# Group 2 – Web Technologies & Application Development (2026)
 
 This repository contains **mandatory exercises** for the NTNU courses:
 
