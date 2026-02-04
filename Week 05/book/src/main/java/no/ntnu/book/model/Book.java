@@ -1,12 +1,21 @@
 package no.ntnu.book.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Represents a book with an id, title, publication year, and number of pages.
  */
 public class Book {
-    private int id;
+    @Schema(description = "Unique ID of the book")
+    private Integer id;
+
+    @Schema(description = "Title of the book")
     private String title;
+
+    @Schema(description = "The year when the book was published")
     private int year;
+
+    @Schema(description = "The number of pages in the book")
     private int numberOfPages;
     
     /**
@@ -26,7 +35,7 @@ public class Book {
      * @param year the publication year of the book
      * @param numberOfPages the number of pages in the book
      */
-    public Book(int id, String title, int year, int numberOfPages) {
+    public Book(Integer id, String title, int year, int numberOfPages) {
         this.id = id; // this to make sure we refer to the instance variable, not the parameter
         this.title = title;
         this.year = year;
@@ -38,7 +47,7 @@ public class Book {
      *
      * @return the id of the book
      */
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
@@ -47,7 +56,7 @@ public class Book {
      *
      * @param id the new id of the book
      */
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

@@ -5,6 +5,11 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import no.ntnu.book.model.Book;
 
 import org.springframework.http.HttpStatus;
@@ -81,26 +86,43 @@ public class BookController {
      *
      * <p>Example: POST http://localhost:8080/books</p>
      */
+    @Operation(
+        summary = "Add a new book",
+        description = "Adds a new book to the collection"
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "201",
+            description = "Book added successfully",
+            content = @Content
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid input",
+            content = @Content
+        )
+    })
     @PostMapping("/books")
-    public ResponseEntity<String> addBook(@RequestBody Book book) {
+    public ResponseEntity<String> addBook(
+        @Parameter(description = "Book to add", required = true)
+        @RequestBody Book book) {
         // Simple validation: check for null title
         if (book.getTitle() == null) {
             return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body("Error, book title cannot be null");
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("Error, book title cannot be null");
         }
-        // Check for duplicate book id
-        for (Book b : books) {
-            if (b.getId() == book.getId()) {
-                return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .body("Error, book with the same ID already exists");
-            }
-        }
+
+        // auto-generate new id (simple approach)
+        int newId = getNextId();
+        book.setId(newId);
+        // add book to the list
         books.add(book);
+
+        // return ID as response body (exercise 6.2 step 6b)
         return ResponseEntity
-            .status(HttpStatus.CREATED)
-            .body("Book added successfully!");
+                .status(HttpStatus.CREATED)
+                .body(String.valueOf(newId));
     }
 
     /**
@@ -134,17 +156,32 @@ public class BookController {
      * @param id the id of the book to delete
      * @return ResponseEntity with status and message
      */
+    @Operation(hidden = true) // Hide from Swagger documentation
     @DeleteMapping("/books/{id}")
     public ResponseEntity<String> deleteBook(@PathVariable int id) {
-        for (Book book : books) {
-            // Check if the book with the given id exists
-            if (book.getId() == id) {
-            books.remove(book);
-            return ResponseEntity.ok("Book deleted");
-            }
+        for (int i = 0; i < books.size(); i++) {
+            if (books.get(i).getId() == id) {
+                books.remove(i);
+                return ResponseEntity.ok("Book deleted");
+                }
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
             .body("Book not found");
         // Return HTTP 404 Not Found if book not found
     }
+
+    /**
+     * Generates the next unique id for a new book.
+     * @return
+     */
+    private int getNextId() {
+        int maxId = 0;
+        for (Book b : books) {
+            if (b.getId() > maxId) {
+                maxId = b.getId();
+            }
+        }
+        return maxId + 1;
+    }
+
 }
