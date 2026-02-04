@@ -1,0 +1,38 @@
+meta {
+  name: POST add book
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{BASE_URL}}/books
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+  "title": "Learning web design, 5th edition",
+  "year": 2018,
+  "numberOfPages": 736
+  }
+}
+
+tests {
+  expect(res.status).to.equal(201);
+  // checks HTTP 201 Created
+  
+  const newId = parseInt(res.body, 10);
+  //
+  
+  expect(Number.isInteger(newId)).to.equal(true);
+  //
+  
+  bru.setEnvVar("new_book_id", res.body);
+  // saves generated book ID
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

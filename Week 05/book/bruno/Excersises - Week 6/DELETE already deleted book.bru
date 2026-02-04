@@ -1,0 +1,20 @@
+meta {
+  name: DELETE already deleted book
+  type: http
+  seq: 11
+}
+
+delete {
+  url: {{BASE_URL}}/books/{{new_book_id}}
+  body: none
+  auth: inherit
+}
+
+tests {
+  expect(res.status).to.equal(404);              // checks HTTP 404
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

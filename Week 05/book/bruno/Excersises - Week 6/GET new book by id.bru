@@ -1,0 +1,24 @@
+meta {
+  name: GET new book by id
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{BASE_URL}}/books/{{new_book_id}}
+  body: none
+  auth: inherit
+}
+
+tests {
+  expect(res.status).to.equal(200);              // checks HTTP 200 OK
+  
+  const book = res.body;                         // gets JSON response object
+  
+  expect(book).to.have.property("title");        // checks title field exists
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

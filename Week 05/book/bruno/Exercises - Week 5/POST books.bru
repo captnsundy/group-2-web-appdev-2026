@@ -1,0 +1,25 @@
+meta {
+  name: POST books
+  type: http
+  seq: 11
+}
+
+post {
+  url: http://localhost:8080/books
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "id": 4,
+    "title": "12 Rules for Life",
+    "year": 2018,
+    "numberOfPages": 409
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

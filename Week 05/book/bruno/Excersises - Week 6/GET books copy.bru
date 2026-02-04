@@ -1,0 +1,27 @@
+meta {
+  name: GET books copy
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{BASE_URL}}/books
+  body: none
+  auth: inherit
+}
+
+tests {
+  expect(res.status).to.equal(200);           // checks HTTP 200 OK
+  
+  const data = res.body;                      // gets response body (JSON array)
+  
+  expect(Array.isArray(data)).to.equal(true); // checks response is an array
+  
+  expect(data.length).to.equal(4);            // checks 4 books are returned
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

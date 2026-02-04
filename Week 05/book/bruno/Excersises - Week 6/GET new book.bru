@@ -1,0 +1,29 @@
+meta {
+  name: GET new book
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{BASE_URL}}/books/4
+  body: none
+  auth: inherit
+}
+
+tests {
+  expect(res.status).to.equal(200);                 // checks HTTP 200 OK
+  
+  const book = res.body;                             // gets response JSON object
+  
+  expect(book.title).to.equal(
+    "Learning web design, 5th edition"
+  );                                                 // checks title value
+  
+  expect(book.year).to.equal(2018);                 // checks year value
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

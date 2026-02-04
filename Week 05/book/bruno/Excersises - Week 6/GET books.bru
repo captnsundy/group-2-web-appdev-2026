@@ -1,0 +1,27 @@
+meta {
+  name: GET books
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{BASE_URL}}/books
+  body: none
+  auth: inherit
+}
+
+tests {
+  expect(res.status).to.equal(200);              // checks HTTP 200 OK
+  
+  const data = res.body;                         // gets JSON response body
+  
+  expect(Array.isArray(data)).to.equal(true);    // checks body is an array
+  
+  expect(data.length).to.equal(3);               // checks exactly 2 objects
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

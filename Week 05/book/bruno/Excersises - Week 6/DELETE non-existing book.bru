@@ -1,0 +1,20 @@
+meta {
+  name: DELETE non-existing book
+  type: http
+  seq: 7
+}
+
+delete {
+  url: {{BASE_URL}}/books/883
+  body: none
+  auth: inherit
+}
+
+tests {
+  expect(res.status).to.equal(404);              // checks HTTP 404 Not Found
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

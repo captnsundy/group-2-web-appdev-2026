@@ -1,0 +1,20 @@
+meta {
+  name: DELETE newly-created book
+  type: http
+  seq: 8
+}
+
+delete {
+  url: {{BASE_URL}}/books/{{new_book_id}}
+  body: none
+  auth: inherit
+}
+
+tests {
+  expect(res.status).to.equal(200);              // checks HTTP 200 OK
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
