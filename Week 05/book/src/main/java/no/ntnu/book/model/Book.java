@@ -1,12 +1,26 @@
 package no.ntnu.book.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Represents a book with an id, title, publication year, and number of pages.
  */
+@Entity
 public class Book {
     @Schema(description = "Unique ID of the book")
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Schema(description = "Title of the book")
@@ -17,6 +31,16 @@ public class Book {
 
     @Schema(description = "The number of pages in the book")
     private int numberOfPages;
+
+    @Schema(description = "The authors of the book")
+    @ManyToMany(mappedBy = "books")
+    private Set<Author> authors = new HashSet<>();
+
+    @Schema(description = "Tags associated with the book")
+    @ElementCollection
+    @CollectionTable(name = "book_tag", joinColumns = @JoinColumn(name = "book_id"))
+    @Column(name = "tag")
+    private Set<String> tags = new HashSet<>();
     
     /**
      * Default constructor that creates an empty Book object.
@@ -112,5 +136,41 @@ public class Book {
      */
     public void setNumberOfPages(int numberOfPages) {
         this.numberOfPages = numberOfPages;
+    }
+
+    /**
+     * Returns the authors of the book.
+     *
+     * @return the authors of the book
+     */
+    public Set<Author> getAuthors() {
+        return authors;
+    }
+
+    /**
+     * Sets the authors of the book.
+     *
+     * @param authors the new authors of the book
+     */
+    public void setAuthors(Set<Author> authors) {
+        this.authors = authors;
+    }
+
+    /**
+     * Returns the tags associated with the book.
+     *
+     * @return the tags associated with the book
+     */
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    /**
+     * Sets the tags associated with the book.
+     *
+     * @param tags the new tags associated with the book
+     */
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
     }
 }
