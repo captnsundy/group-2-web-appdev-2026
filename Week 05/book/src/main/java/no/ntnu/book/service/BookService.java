@@ -1,12 +1,12 @@
 package no.ntnu.book.service;
 
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
 import no.ntnu.book.model.Book;
 import no.ntnu.book.repository.BookRepository;
 import no.ntnu.book.controller.BookController;
-
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Service class containing business logic related to {@link Book} entities.
@@ -18,13 +18,13 @@ import java.util.Optional;
  * <p>The service layer ensures that controllers remain free of business logic
  * and that repositories remain free of validation or application-specific rules.</p>
  */
-
+@Service
 public class BookService {
 
     private final BookRepository repo;
 
     /**
-     * Constructs a new BookService with the specified BookRepository.
+     * Constructs a new BookService with the specified BookRepository injected by Spring.
      * @param repo the BookRepository to use for data access
      */
     public BookService(BookRepository repo) {
@@ -33,10 +33,9 @@ public class BookService {
 
     /**
      * Retrieves all books from the database.
-     * @return a list of all books in the database
-     * @throws SQLException if a database access error occurs
+     * @return all books in the database
      */
-    public List<Book> getAll() throws SQLException {
+    public Iterable<Book> getAll() {
         return repo.findAll();
     }
 
@@ -44,57 +43,60 @@ public class BookService {
      * Retrieves a book by its id from the database.
      * @param id the id of the book to retrieve
      * @return an Optional containing the book if found, or an empty Optional if not found
-     * @throws SQLException if a database access error occurs
      */
-    public Optional<Book> getById(int id) throws SQLException {
+    public Optional<Book> getById(int id) {
         return repo.findById(id);
     }
 
     /**
-     * Creates a new book in the database using the provided book data. Validates the book data before insertion.
-     * @param book the book to create in the database
+     * Creates a new book in the database. Validates the book data before insertion.
+     * @param book the book to create
      * @return the generated id of the created book
-     * @throws SQLException if a database access error occurs
      */
-    public int create(Book book) throws SQLException {
+    public int create(Book book) {
         validateBook(book);
-        return repo.insert(book);
+        Book saved = repo.save(book);
+        return saved.getId();
     }
 
     /**
-     * Updates an existing book in the database with the specified id using the provided book data.
-     * Validates the book data before updating.
+     * Updates an existing book in the database. Validates the book data before updating.
      * @param id the id of the book to update
-     * @param book the book data to update the existing book with
-     * @return true if the update was successful (i.e., a book with the specified id existed and was updated), false otherwise
-     * @throws SQLException if a database access error occurs
+     * @param book the updated book data
+     * @return true if the book existed and was updated, false if no book with that id exists
      */
-    public boolean update(int id, Book book) throws SQLException {
+    public boolean update(int id, Book book) {
+        if (!repo.existsById(id)) {
+            return false;
+        }
         validateBook(book);
-        return repo.update(id, book) > 0;
+        book.setId(id);
+        repo.save(book);
+        return true;
     }
 
     /**
      * Deletes a book with the specified id from the database.
-     *
      * @param id the id of the book to delete
-     * @return true if the delete was successful (i.e., a book with the specified id existed and was deleted), false otherwise
-     * @throws SQLException if a database access error occurs
+     * @return true if the book existed and was deleted, false otherwise
      */
-    public boolean delete(int id) throws SQLException {
-        return repo.delete(id) > 0;
+    public boolean delete(int id) {
+        if (!repo.existsById(id)) {
+            return false;
+        }
+        repo.deleteById(id);
+        return true;
     }
 
     /**
      * Validates the provided book data according to business rules.
      * @param book the book to validate
-     * @throws IllegalArgumentException if the book data is invalid according to business rules
+     * @throws IllegalArgumentException if the book data is invalid
      */
     private void validateBook(Book book) {
         if (book.getTitle() == null || book.getTitle().isBlank()) {
             throw new IllegalArgumentException("Book title cannot be null/blank.");
         }
-        // optional: protect against nonsense values
         if (book.getYear() < 0) {
             throw new IllegalArgumentException("Year cannot be negative.");
         }

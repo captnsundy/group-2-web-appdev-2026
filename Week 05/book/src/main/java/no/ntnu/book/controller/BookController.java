@@ -1,7 +1,5 @@
 package no.ntnu.book.controller;
 
-import java.sql.SQLException;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.web.bind.annotation.RestController;
@@ -11,9 +9,10 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import no.ntnu.book.model.Book;
-import no.ntnu.book.repository.BookRepository;
 import no.ntnu.book.service.BookService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -36,22 +35,17 @@ import org.springframework.web.bind.annotation.RequestBody;
  */
 @RestController
 public class BookController {
-    private static final String DB_URL = "jdbc:mysql://10.212.26.199:3306/books";
-    private static final String DB_USER = "bookie";
-    private static final String DB_PASSWORD = "Books4life!";
+    private static final Logger logger = LoggerFactory.getLogger(BookController.class);
 
     private final BookService service;
 
     /**
-     * Constructs a new BookController and initializes the BookService with a BookRepository.
+     * Constructs a new BookController with the provided BookService injected by Spring.
      *
-     * <p>The BookRepository is created with the database connection parameters defined as constants.</p>
-     * <p>This constructor sets up the necessary dependencies for the controller to function properly,
-     * allowing it to handle incoming HTTP requests and interact with the database through the service layer.</p>
+     * @param service the BookService to use for business logic and data access
      */
-    public BookController() {
-        BookRepository repo = new BookRepository(DB_URL, DB_USER, DB_PASSWORD);
-        this.service = new BookService(repo);
+    public BookController(BookService service) {
+        this.service = service;
     }
 
     /**
@@ -60,15 +54,11 @@ public class BookController {
      * <p>Example: GET http://localhost:8080/books</p>
      */
     @GetMapping("/books")
-    public ResponseEntity<List<Book>> getAllBooks() {
-        try {
-            return ResponseEntity.ok(service.getAll()); // Get all books from the service and return with 200 OK
-        } catch (SQLException e) { //
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public ResponseEntity<Iterable<Book>> getAllBooks() {
+        logger.info("Getting all books");
+        return ResponseEntity.ok(service.getAll());
     }
-    
+
     /**
      * Returns REST endpoint to get a book by its id, mapped to /books/{id}.
      *
@@ -76,14 +66,10 @@ public class BookController {
      */
     @GetMapping("/books/{id}")
     public ResponseEntity<Book> getBookById(@PathVariable int id) {
-        try {
-            Optional<Book> book = service.getById(id); // Get the book by id from the service
-            return book.map(ResponseEntity::ok)
-                       .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        logger.info("Getting book with id: {}", id);
+        Optional<Book> book = service.getById(id);
+        return book.map(ResponseEntity::ok)
+                   .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     /**
@@ -109,15 +95,12 @@ public class BookController {
     })
     @PostMapping("/books")
     public ResponseEntity<String> addBook(@RequestBody Book book) {
+        logger.info("Adding new book: {}", book.getTitle());
         try {
-            int newId = service.create(book); // Create the new book using the service and get the generated id
+            int newId = service.create(book);
             return ResponseEntity.status(HttpStatus.CREATED).body(String.valueOf(newId));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error! Book could not be added");
         }
     }
 
@@ -129,8 +112,9 @@ public class BookController {
      */
     @PutMapping("/books/{id}")
     public ResponseEntity<String> updateBook(@PathVariable int id, @RequestBody Book updatedBook) {
+        logger.info("Updating book with id: {}", id);
         try {
-            boolean updated = service.update(id, updatedBook); // Update the book using the service
+            boolean updated = service.update(id, updatedBook);
             if (!updated) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body("Error! Book with id " + id + " not found");
@@ -138,10 +122,6 @@ public class BookController {
             return ResponseEntity.ok("Book updated successfully!");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error! Book could not be updated");
         }
     }
 
@@ -153,17 +133,12 @@ public class BookController {
     @Operation(hidden = true) // Hide from Swagger documentation
     @DeleteMapping("/books/{id}")
     public ResponseEntity<String> deleteBook(@PathVariable int id) {
-        try {
-            boolean deleted = service.delete(id); // Delete the book using the service
-            if (!deleted) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("Error! Book with id " + id + " not found");
-            }
-            return ResponseEntity.ok("Book deleted");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error! Book could not be deleted");
+        logger.info("Deleting book with id: {}", id);
+        boolean deleted = service.delete(id);
+        if (!deleted) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Error! Book with id " + id + " not found");
         }
+        return ResponseEntity.ok("Book deleted");
     }
 }
